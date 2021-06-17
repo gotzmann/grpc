@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
+package server;
+
+option go_package = "github.com/gotzmann/grpc";
+
+service Products {
+    rpc addProduct(Product) returns (google.protobuf.StringValue);
+    rpc addProductSimple(Product) returns (ProductID);
+    rpc getProductsByBrand(google.protobuf.StringValue) returns (ProductsResponse);
+    rpc getProductsByBrandSimple(google.protobuf.StringValue) returns (ProductsResponse);
+}
+
+message Brand {
+    int64 id = 1;
+    string name = 2;
+}
+
+message Category {
+    int64 id = 1;
+    string name = 2;
+}
+
+message ProductID {
+	int64 value = 1;
+}
+
+message Product {
+    int64 id = 1;
+    string name = 2;
+    int64 brand_id = 3;
+    int64 category_id = 4;
+    int64 year = 5;
+    float price = 6;
+}
+
+message ProductsResponse {
+    repeated Product products = 1;
+}

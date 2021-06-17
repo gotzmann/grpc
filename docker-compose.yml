@@ -1,0 +1,26 @@
+version: '3'
+services:
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    container_name: server
+    ports:
+      - 80:80
+    volumes:
+      - ./server/gen:/server/gen
+    environment:
+      - LISTEN_HOST=0.0.0.0
+      - LISTEN_PORT=80
+      - GOROOT=/usr/local/go
+      - GOPATH=/go
+      - GOBIN=/go/bin
+
+#      - PATH=$PATH:$GOROOT:$GOPATH:$GOBIN
+
+#  client:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.client
+#    container_name: client
