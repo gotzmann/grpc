@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	"log"
 	"net"
 
-//	"github.com/gofrs/uuid"
-	pb "server/gen/proto"
+	pb "github.com/gotzmann/grpc/server/gen/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,7 +16,8 @@ const (
 	port = ":80"
 )
 
-type server struct {	
+type server struct {
+	pb.UnimplementedProductsServer
 }
 
 func (s *server) AddProduct(ctx context.Context, in *pb.Product) (*pb.ProductID, error) {
@@ -25,16 +26,18 @@ func (s *server) AddProduct(ctx context.Context, in *pb.Product) (*pb.ProductID,
 //		return nil, status.Errorf(codes.Internal, "Error while generating Product ID", err)
 //	}
 //	in.Id = out.String()
+	in.Id = 1980
 //	if s.productMap == nil {
 //		s.productMap = make(map[string]*pb.Product)
 //	}
 //	s.productMap[in.Id] = in
-//	log.Printf("Product %v : %v - Added.", in.Id, in.Name)
+	log.Printf("Product %v : %v - Added.", in.Id, in.Name)
 //	return &pb.ProductID{Value: in.Id}, status.New(codes.OK, "").Err()
 	return &pb.ProductID{Value: 1980}, status.New(codes.OK, "").Err()
 }
 
-func (s *server) GetProductByBrand(ctx context.Context, in *pb.ProductID) (*pb.Product, error) {
+/////func (s *server) GetProductsByBrand(ctx context.Context, in *pb.ProductID) (*pb.Product, error) {
+func (s *server) GetProductsByBrand(ctx context.Context, in *wrapperspb.StringValue) (*pb.ProductsResponse, error) {
 //	product, exists := s.productMap[in.Value]
 //	if exists && product != nil {
 //		log.Printf("Product %v : %v - Retrieved.", product.Id, product.Name)
@@ -43,6 +46,9 @@ func (s *server) GetProductByBrand(ctx context.Context, in *pb.ProductID) (*pb.P
 //	return nil, status.Errorf(codes.NotFound, "Product does not exist.", in.Value)
 	return nil, status.Errorf(codes.NotFound, "Product does not exist.", in.Value)
 }
+
+//func (s *server) mustEmbedUnimplementedProductsServer() {
+//}
 
 func main() {
 	lis, err := net.Listen("tcp", port)

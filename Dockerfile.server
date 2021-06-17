@@ -15,13 +15,13 @@ COPY ./ /
 WORKDIR /
 
 # Generate stubs
-RUN protoc --go_out=/server/gen --go_opt=paths=source_relative \
-    --go-grpc_out=/server/gen --go-grpc_opt=paths=source_relative \
+RUN protoc --go_out=./server/gen --go_opt=paths=source_relative \
+    --go-grpc_out=./server/gen --go-grpc_opt=paths=source_relative \
     proto/products.proto
 
 RUN mkdir -p /usr/local/go/src/server/gen/
 RUN cp -r /server/gen/ /usr/local/go/src/server/
 
-RUN go build /server/main.go
+RUN go build -o /server/server /server/main.go
 
 CMD tail -f /dev/null

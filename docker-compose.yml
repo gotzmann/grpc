@@ -8,8 +8,8 @@ services:
     container_name: server
     ports:
       - 80:80
-    volumes:
-      - ./server/gen:/server/gen
+#    volumes:
+#      - ./server/gen:/server/gen
     environment:
       - LISTEN_HOST=0.0.0.0
       - LISTEN_PORT=80

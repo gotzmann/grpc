@@ -7,10 +7,10 @@ package server;
 option go_package = "github.com/gotzmann/grpc";
 
 service Products {
-    rpc addProduct(Product) returns (google.protobuf.StringValue);
-    rpc addProductSimple(Product) returns (ProductID);
+    //rpc addProduct(Product) returns (google.protobuf.StringValue);
+    rpc addProduct(Product) returns (ProductID);
     rpc getProductsByBrand(google.protobuf.StringValue) returns (ProductsResponse);
-    rpc getProductsByBrandSimple(google.protobuf.StringValue) returns (ProductsResponse);
+    //rpc getProductsByBrandSimple(google.protobuf.StringValue) returns (ProductsResponse);
 }
 
 message Brand {

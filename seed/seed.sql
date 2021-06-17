@@ -1,3 +1,5 @@
+-- noinspection SqlNoDataSourceInspectionForFile
+
 /*
 --------------------------------------------------------------------
 © 2017 sqlservertutorial.net All Rights Reserved

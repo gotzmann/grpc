@@ -4,10 +4,10 @@ package grpc
 
 import (
 	context "context"
-	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,10 +19,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProductsClient interface {
-	AddProduct(ctx context.Context, in *Product, opts ...grpc.CallOption) (*wrappers.StringValue, error)
-	AddProductSimple(ctx context.Context, in *Product, opts ...grpc.CallOption) (*ProductID, error)
-	GetProductsByBrand(ctx context.Context, in *wrappers.StringValue, opts ...grpc.CallOption) (*ProductsResponse, error)
-	GetProductsByBrandSimple(ctx context.Context, in *wrappers.StringValue, opts ...grpc.CallOption) (*ProductsResponse, error)
+	//rpc addProduct(Product) returns (google.protobuf.StringValue);
+	AddProduct(ctx context.Context, in *Product, opts ...grpc.CallOption) (*ProductID, error)
+	GetProductsByBrand(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*ProductsResponse, error)
 }
 
 type productsClient struct {
@@ -33,8 +32,8 @@ func NewProductsClient(cc grpc.ClientConnInterface) ProductsClient {
 	return &productsClient{cc}
 }
 
-func (c *productsClient) AddProduct(ctx context.Context, in *Product, opts ...grpc.CallOption) (*wrappers.StringValue, error) {
-	out := new(wrappers.StringValue)
+func (c *productsClient) AddProduct(ctx context.Context, in *Product, opts ...grpc.CallOption) (*ProductID, error) {
+	out := new(ProductID)
 	err := c.cc.Invoke(ctx, "/server.Products/addProduct", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -42,27 +41,9 @@ func (c *productsClient) AddProduct(ctx context.Context, in *Product, opts ...gr
 	return out, nil
 }
 
-func (c *productsClient) AddProductSimple(ctx context.Context, in *Product, opts ...grpc.CallOption) (*ProductID, error) {
-	out := new(ProductID)
-	err := c.cc.Invoke(ctx, "/server.Products/addProductSimple", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *productsClient) GetProductsByBrand(ctx context.Context, in *wrappers.StringValue, opts ...grpc.CallOption) (*ProductsResponse, error) {
+func (c *productsClient) GetProductsByBrand(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*ProductsResponse, error) {
 	out := new(ProductsResponse)
 	err := c.cc.Invoke(ctx, "/server.Products/getProductsByBrand", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *productsClient) GetProductsByBrandSimple(ctx context.Context, in *wrappers.StringValue, opts ...grpc.CallOption) (*ProductsResponse, error) {
-	out := new(ProductsResponse)
-	err := c.cc.Invoke(ctx, "/server.Products/getProductsByBrandSimple", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,10 +54,9 @@ func (c *productsClient) GetProductsByBrandSimple(ctx context.Context, in *wrapp
 // All implementations must embed UnimplementedProductsServer
 // for forward compatibility
 type ProductsServer interface {
-	AddProduct(context.Context, *Product) (*wrappers.StringValue, error)
-	AddProductSimple(context.Context, *Product) (*ProductID, error)
-	GetProductsByBrand(context.Context, *wrappers.StringValue) (*ProductsResponse, error)
-	GetProductsByBrandSimple(context.Context, *wrappers.StringValue) (*ProductsResponse, error)
+	//rpc addProduct(Product) returns (google.protobuf.StringValue);
+	AddProduct(context.Context, *Product) (*ProductID, error)
+	GetProductsByBrand(context.Context, *wrapperspb.StringValue) (*ProductsResponse, error)
 	mustEmbedUnimplementedProductsServer()
 }
 
@@ -84,17 +64,11 @@ type ProductsServer interface {
 type UnimplementedProductsServer struct {
 }
 
-func (UnimplementedProductsServer) AddProduct(context.Context, *Product) (*wrappers.StringValue, error) {
+func (UnimplementedProductsServer) AddProduct(context.Context, *Product) (*ProductID, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddProduct not implemented")
 }
-func (UnimplementedProductsServer) AddProductSimple(context.Context, *Product) (*ProductID, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddProductSimple not implemented")
-}
-func (UnimplementedProductsServer) GetProductsByBrand(context.Context, *wrappers.StringValue) (*ProductsResponse, error) {
+func (UnimplementedProductsServer) GetProductsByBrand(context.Context, *wrapperspb.StringValue) (*ProductsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductsByBrand not implemented")
-}
-func (UnimplementedProductsServer) GetProductsByBrandSimple(context.Context, *wrappers.StringValue) (*ProductsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProductsByBrandSimple not implemented")
 }
 func (UnimplementedProductsServer) mustEmbedUnimplementedProductsServer() {}
 
@@ -127,26 +101,8 @@ func _Products_AddProduct_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Products_AddProductSimple_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Product)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProductsServer).AddProductSimple(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/server.Products/addProductSimple",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductsServer).AddProductSimple(ctx, req.(*Product))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Products_GetProductsByBrand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrappers.StringValue)
+	in := new(wrapperspb.StringValue)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -158,25 +114,7 @@ func _Products_GetProductsByBrand_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/server.Products/getProductsByBrand",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductsServer).GetProductsByBrand(ctx, req.(*wrappers.StringValue))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Products_GetProductsByBrandSimple_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrappers.StringValue)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProductsServer).GetProductsByBrandSimple(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/server.Products/getProductsByBrandSimple",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductsServer).GetProductsByBrandSimple(ctx, req.(*wrappers.StringValue))
+		return srv.(ProductsServer).GetProductsByBrand(ctx, req.(*wrapperspb.StringValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -193,16 +131,8 @@ var Products_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Products_AddProduct_Handler,
 		},
 		{
-			MethodName: "addProductSimple",
-			Handler:    _Products_AddProductSimple_Handler,
-		},
-		{
 			MethodName: "getProductsByBrand",
 			Handler:    _Products_GetProductsByBrand_Handler,
-		},
-		{
-			MethodName: "getProductsByBrandSimple",
-			Handler:    _Products_GetProductsByBrandSimple_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
