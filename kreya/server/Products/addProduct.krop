@@ -1,6 +1,7 @@
 {
   "details": {
-    "methodFqn": "server.Products.addProduct"
+    "methodFqn": "server.Products.addProduct",
+    "mode": "grpc"
   },
   "requests": [
     {

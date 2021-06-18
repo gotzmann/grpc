@@ -24,11 +24,11 @@ message Category {
 }
 
 message ProductID {
-	int64 value = 1;
+	string value = 1;
 }
 
 message Product {
-    int64 id = 1;
+    string id = 1;
     string name = 2;
     int64 brand_id = 3;
     int64 category_id = 4;
