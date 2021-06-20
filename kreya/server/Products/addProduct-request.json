@@ -1,8 +1,7 @@
 {
-  "id": "1980",
-  "name": "Bike",
-  "brandId": "1",
-  "categoryId": "1",
-  "year": "2021",
-  "price": 1000.0
+  "name": "Old Bike $666",
+  "brandId": 1,
+  "categoryId": 1,  
+  "year": 1980,
+  "price": 666.666
 }

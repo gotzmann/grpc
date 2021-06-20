@@ -14,26 +14,27 @@ service Products {
 }
 
 message Brand {
-    int64 id = 1;
+    int32 id = 1;
     string name = 2;
 }
 
 message Category {
-    int64 id = 1;
+    int32 id = 1;
     string name = 2;
 }
 
 message ProductID {
-	string value = 1;
+	int32 value = 1;
 }
 
 message Product {
-    string id = 1;
+    int32 id = 1;
     string name = 2;
-    int64 brand_id = 3;
-    int64 category_id = 4;
-    int64 year = 5;
-    float price = 6;
+    int32 brand_id = 3;
+    int32 category_id = 4;
+    int32 year = 5;
+    double price = 6;
+//    string last = 7;
 }
 
 message ProductsResponse {

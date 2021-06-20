@@ -27,13 +27,13 @@ CREATE TABLE categories (
 
 -- CREATE TABLE production.brands (
 CREATE TABLE brands (
-   brand_id INT PRIMARY KEY,
+   brand_id SERIAL PRIMARY KEY,
    brand_name VARCHAR (255) NOT NULL
 );
 
 -- CREATE TABLE production.products (
 CREATE TABLE products (
-     product_id INT PRIMARY KEY,
+     product_id SERIAL PRIMARY KEY,
      product_name VARCHAR (255) NOT NULL,
      brand_id INT NOT NULL,
      category_id INT NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE stores (
 
 -- CREATE TABLE sales.staffs (
 CREATE TABLE staffs (
-    staff_id INT PRIMARY KEY,
+    staff_id SERIAL PRIMARY KEY,
     first_name VARCHAR (50) NOT NULL,
     last_name VARCHAR (50) NOT NULL,
     email VARCHAR (255) NOT NULL UNIQUE,
@@ -86,7 +86,7 @@ CREATE TABLE staffs (
 
 -- CREATE TABLE sales.orders (
 CREATE TABLE orders (
-    order_id INT PRIMARY KEY,
+    order_id SERIAL PRIMARY KEY,
     customer_id INT,
     order_status int NOT NULL,
     -- Order status: 1 = Pending; 2 = Processing; 3 = Rejected; 4 = Completed

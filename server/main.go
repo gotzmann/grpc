@@ -2,16 +2,22 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"github.com/gofrs/uuid"
-	"google.golang.org/protobuf/types/known/wrapperspb"
+	"github.com/volatiletech/sqlboiler/v4/types"
 	"log"
 	"net"
 
-	pb "github.com/gotzmann/grpc/server/gen/proto"
+	"github.com/ericlagergren/decimal"
+	"github.com/gotzmann/grpc/models"
+	proto "github.com/gotzmann/grpc/server/gen/proto"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	_ "github.com/volatiletech/sqlboiler/v4/drivers"
+	_ "github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-psql/driver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -19,38 +25,78 @@ const (
 )
 
 type server struct {
-	pb.UnimplementedProductsServer
+	proto.UnimplementedProductsServer
 }
 
-func (s *server) AddProduct(ctx context.Context, in *pb.Product) (*pb.ProductID, error) {
-	out, err := uuid.NewV4()
+func (s *server) AddProduct(ctx context.Context, in *proto.Product) (*proto.ProductID, error) {
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=password dbname=grpc sslmode=disable")
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Error while generating Product ID", err)
+		return nil, err
 	}
-	in.Id = out.String()
-/////	in.Id = 1980
-//	if s.productMap == nil {
-//		s.productMap = make(map[string]*pb.Product)
-//	}
-//	s.productMap[in.Id] = in
-	log.Printf("Product %v : %v - Added.", in.Id, in.Name)
-//	return &pb.ProductID{Value: in.Id}, status.New(codes.OK, "").Err()
-	return &pb.ProductID{Value: in.Id}, status.New(codes.OK, "").Err()
+
+	fmt.Printf("\nproto.Product\n%v+", in)
+
+	var price decimal.Big
+	price.SetFloat64(in.Price)
+
+	product := models.Product{
+		ProductName: in.Name,
+		BrandID: int(in.BrandId),
+		CategoryID: int(in.CategoryId),
+		ModelYear: int16(in.Year),
+		ListPrice: types.Decimal{Big: &price},
+	}
+
+	fmt.Printf("\n=== price = \n%v+", price)
+	fmt.Printf("\nmodels.Product\n%v+", product)
+
+	// Blacklist primary key to avoid duplication of IDs
+	// Repair nulled sequence counter with SQL if needed:
+	// ALTER sequence products_product_id_seq restart with 500;
+	err = product.Insert(ctx, db, boil.Blacklist("product_id"))
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Error while inserting Product", err)
+	}
+
+	log.Printf("\nProduct was added #%v => %v", product.ProductID, product.ProductName)
+	return &proto.ProductID{Value: int32(product.ProductID)}, status.New(codes.OK, "").Err()
 }
 
 /////func (s *server) GetProductsByBrand(ctx context.Context, in *pb.ProductID) (*pb.Product, error) {
-func (s *server) GetProductsByBrand(ctx context.Context, in *wrapperspb.StringValue) (*pb.ProductsResponse, error) {
-//	product, exists := s.productMap[in.Value]
-//	if exists && product != nil {
-//		log.Printf("Product %v : %v - Retrieved.", product.Id, product.Name)
-//		return product, status.New(codes.OK, "").Err()
-//	}
-//	return nil, status.Errorf(codes.NotFound, "Product does not exist.", in.Value)
-	return nil, status.Errorf(codes.NotFound, "Product does not exist.", in.Value)
-}
+func (s *server) GetProductsByBrand(ctx context.Context, brand *wrapperspb.StringValue) (*proto.ProductsResponse, error) {
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=password dbname=grpc sslmode=disable")
+	if err != nil {
+		return nil, err
+	}
 
-//func (s *server) mustEmbedUnimplementedProductsServer() {
-//}
+	//products, err := models.Products(qm.Where()).All(ctx, db)
+	products, err := models.Products().All(ctx, db)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Error while looking products", err)
+	}
+
+	if len(products) == 0 {
+		return nil, status.Errorf(codes.NotFound, "Brand %s has no products", brand.Value)
+	}
+
+	grpcProducts := make([]*proto.Product, len(products))
+	for i, p := range products {
+		price, _ := p.ListPrice.Float64() // TODO Check errors!
+		grpcProduct := proto.Product{
+			Id: int32(p.ProductID),
+			Name: p.ProductName,
+			BrandId: int32(p.BrandID),
+			CategoryId: int32(p. CategoryID),
+			Year: int32(p.ModelYear),
+			Price: price,
+		}
+		grpcProducts[i] = &grpcProduct
+	}
+
+	log.Printf("\nReturned %d products for brand %s", len(products), brand.Value)
+
+	return &proto.ProductsResponse{Products: grpcProducts}, status.New(codes.OK, "").Err()
+}
 
 func main() {
 	fmt.Println("[gRPC] Server started...")
@@ -59,7 +105,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	pb.RegisterProductsServer(s, &server{})
+	proto.RegisterProductsServer(s, &server{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
