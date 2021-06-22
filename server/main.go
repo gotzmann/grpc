@@ -21,12 +21,10 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-const (
-	port = ":80"
-)
+const port = ":80"
 
 type server struct {
-	proto.UnimplementedProductsServer
+	proto.UnimplementedProductsServer // We should embed it
 }
 
 func (s *server) AddProduct(ctx context.Context, in *proto.Product) (*proto.ProductID, error) {
@@ -35,6 +33,7 @@ func (s *server) AddProduct(ctx context.Context, in *proto.Product) (*proto.Prod
 		return nil, err
 	}
 
+	// Convert price from double to Decimal.Big
 	var price decimal.Big
 	price.SetFloat64(in.Price)
 
@@ -75,8 +74,16 @@ func (s *server) GetProductsByBrand(ctx context.Context, brand *wrapperspb.Strin
 	useFiltering := false
 	products, err := models.Products(
 		InnerJoin("brands on brands.brand_id = products.brand_id"),
-		Load("Brand", Where("brands.brand_name = ?", brand.Value)),
+		Where("brands.brand_name = ?", brand.Value),
 	).All(ctx, db)
+
+	/* --- Reverse relationship
+	b, err := models.Brands(
+		Load("Products"),
+		Where("brand_name = ?", brand.Value),
+	).One(ctx, db)
+	fmt.Printf("\n===Brand with Products\n%+v", b)
+	fmt.Printf("\n===First Product of Brand\n%+v", b.R.Products[0]) */
 
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Error while looking products", err)
@@ -111,20 +118,23 @@ func (s *server) GetProductsByBrand(ctx context.Context, brand *wrapperspb.Strin
 	}
 
 	log.Printf("\nReturned %d products for brand %s", len(products), brand.Value)
-
 	return &proto.ProductsResponse{Products: brandProducts}, status.New(codes.OK, "").Err()
 }
 
 func main() {
 	fmt.Println("[gRPC] Server started...")
 	lis, err := net.Listen("tcp", port)
+
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+
 	s := grpc.NewServer()
 	proto.RegisterProductsServer(s, &server{})
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+
 	fmt.Println("[gRPC] Server stopped...")
 }
